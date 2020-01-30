@@ -15,7 +15,7 @@
 #include "esp_timer.h"
 #include "esp_camera.h"
 #include "img_converters.h"
-#include "camera_index.h"
+//#include "camera_index.h"
 #include "Arduino.h"
 
 extern int gpLb;
@@ -24,6 +24,7 @@ extern int gpRb;
 extern int gpRf;
 extern int gpLed;
 extern String WiFiAddr;
+//extern int gpServo;
 
 void WheelAct(int nLf, int nLb, int nRf, int nRb);
 
@@ -183,11 +184,11 @@ static esp_err_t stream_handler(httpd_req_t *req){
         last_frame = fr_end;
         frame_time /= 1000;
         uint32_t avg_frame_time = ra_filter_run(&ra_filter, frame_time);
-        Serial.printf("MJPG: %uB %ums (%.1ffps), AVG: %ums (%.1ffps)"
-            ,(uint32_t)(_jpg_buf_len),
-            (uint32_t)frame_time, 1000.0 / (uint32_t)frame_time,
-            avg_frame_time, 1000.0 / avg_frame_time
-        );
+        //Serial.printf("MJPG: %uB %ums (%.1ffps), AVG: %ums (%.1ffps)"
+        //    ,(uint32_t)(_jpg_buf_len),
+        //    (uint32_t)frame_time, 1000.0 / (uint32_t)frame_time,
+        //    avg_frame_time, 1000.0 / avg_frame_time
+        //);
     }
 
     last_frame = 0;
@@ -311,47 +312,48 @@ static esp_err_t index_handler(httpd_req_t *req){
      page += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0\">\n";
  page += "<script>var xhttp = new XMLHttpRequest();</script>";
  page += "<script>function getsend(arg) { xhttp.open('GET', arg +'?' + new Date().getTime(), true); xhttp.send() } </script>";
- //page += "<p align=center><IMG SRC='http://" + WiFiAddr + ":81/stream' style='width:280px;'></p><br/><br/>";
- page += "<p align=center><IMG SRC='http://" + WiFiAddr + ":81/stream' style='width:300px; transform:rotate(180deg);'></p><br/><br/>";
+ //page += "<p align=center><IMG SRC='http://" + WiFiAddr + ":81/stream' style='height:49vh;'></p><br/><br/>";
+ page += "<p align=center><IMG SRC='http://" + WiFiAddr + ":81/stream' style='height:49vh; transform:rotate(180deg);'></p><br/><br/>";
  
- page += "<p align=center> <button style=width:90px;height:80px onmousedown=getsend('go') onmouseup=getsend('stop') ontouchstart=getsend('go') ontouchend=getsend('stop') ></button> </p>";
+ page += "<p align=center> <button style=width:60px;height:40px onmousedown=getsend('go') onmouseup=getsend('stop') ontouchstart=getsend('go') ontouchend=getsend('stop') ></button> </p>";
  page += "<p align=center>";
- page += "<button style=width:90px;height:80px onmousedown=getsend('left') onmouseup=getsend('stop') ontouchstart=getsend('left') ontouchend=getsend('stop')></button>&nbsp;";
- page += "<button style=width:90px;height:80px onmousedown=getsend('stop') onmouseup=getsend('stop')></button>&nbsp;";
- page += "<button style=width:90px;height:80px onmousedown=getsend('right') onmouseup=getsend('stop') ontouchstart=getsend('right') ontouchend=getsend('stop')></button>";
+ page += "<button style=width:60px;height:40px onmousedown=getsend('left') onmouseup=getsend('stop') ontouchstart=getsend('left') ontouchend=getsend('stop')></button>&nbsp;";
+ page += "<button style=width:60px;height:40px onmousedown=getsend('stop') onmouseup=getsend('stop')></button>&nbsp;";
+ page += "<button style=width:60px;height:40px onmousedown=getsend('right') onmouseup=getsend('stop') ontouchstart=getsend('right') ontouchend=getsend('stop')></button>";
  page += "</p>";
 
- page += "<p align=center><button style=width:90px;height:80px onmousedown=getsend('back') onmouseup=getsend('stop') ontouchstart=getsend('back') ontouchend=getsend('stop') ></button></p>";  
+ page += "<p align=center><button style=width:60px;height:40px onmousedown=getsend('back') onmouseup=getsend('stop') ontouchstart=getsend('back') ontouchend=getsend('stop') ></button></p>";  
 
  page += "<p align=center>";
  page += "<button style=width:140px;height:40px onmousedown=getsend('ledon')>LED ON</button>";
  page += "<button style=width:140px;height:40px onmousedown=getsend('ledoff')>LED OFF</button>";
+ page += "<button style=width:140px;height:40px onmousedown=getsend('button1')>Button_1</button>";
  page += "</p>";
  
     return httpd_resp_send(req, &page[0], strlen(&page[0]));
 }
 
 static esp_err_t go_handler(httpd_req_t *req){
-    WheelAct(HIGH, LOW, HIGH, LOW);
+    WheelAct(LOW, HIGH, LOW, HIGH);
     Serial.println("Go");
     httpd_resp_set_type(req, "text/html");
     return httpd_resp_send(req, "OK", 2);
 }
 static esp_err_t back_handler(httpd_req_t *req){
-    WheelAct(LOW, HIGH, LOW, HIGH);
+    WheelAct(HIGH, LOW, HIGH, LOW);
     Serial.println("Back");
     httpd_resp_set_type(req, "text/html");
     return httpd_resp_send(req, "OK", 2);
 }
 
 static esp_err_t left_handler(httpd_req_t *req){
-    WheelAct(HIGH, LOW, LOW, HIGH);
+    WheelAct(LOW, HIGH, HIGH, LOW);
     Serial.println("Left");
     httpd_resp_set_type(req, "text/html");
     return httpd_resp_send(req, "OK", 2);
 }
 static esp_err_t right_handler(httpd_req_t *req){
-    WheelAct(LOW, HIGH, HIGH, LOW);
+    WheelAct(HIGH, LOW, LOW, HIGH);
     Serial.println("Right");
     httpd_resp_set_type(req, "text/html");
     return httpd_resp_send(req, "OK", 2);
@@ -373,12 +375,22 @@ static esp_err_t ledon_handler(httpd_req_t *req){
 static esp_err_t ledoff_handler(httpd_req_t *req){
     digitalWrite(gpLed, LOW);
     Serial.println("LED OFF");
+    periph_module_reset(PERIPH_I2C0_MODULE);
+    httpd_resp_set_type(req, "text/html");
+    return httpd_resp_send(req, "OK", 2);
+}
+
+static esp_err_t button1_handler(httpd_req_t *req){
+    //ESP.restart();
+    Serial.println("Button 1 pressed");
     httpd_resp_set_type(req, "text/html");
     return httpd_resp_send(req, "OK", 2);
 }
 
 void startCameraServer(){
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.max_uri_handlers =10;
+	
 
     httpd_uri_t go_uri = {
         .uri       = "/go",
@@ -464,6 +476,12 @@ void startCameraServer(){
         .user_ctx  = NULL
     };
 
+   httpd_uri_t button1_uri = {
+        .uri       = "/button1",
+        .method    = HTTP_GET,
+        .handler   = button1_handler,
+        .user_ctx  = NULL
+    };
 
     ra_filter_init(&ra_filter, 20);
     Serial.printf("Starting web server on port: '%d'", config.server_port);
@@ -476,6 +494,7 @@ void startCameraServer(){
         httpd_register_uri_handler(camera_httpd, &right_uri);
         httpd_register_uri_handler(camera_httpd, &ledon_uri);
         httpd_register_uri_handler(camera_httpd, &ledoff_uri);
+        httpd_register_uri_handler(camera_httpd, &button1_uri);
     }
 
     config.server_port += 1;
