@@ -1,6 +1,7 @@
 #include "esp_camera.h"
 #include <WiFi.h>
-
+#include <esp_int_wdt.h>
+#include <esp_task_wdt.h>
 //
 // WARNING!!! Make sure that you have either selected ESP32 Wrover Module,
 //            or another board which has PSRAM enabled
@@ -12,8 +13,8 @@
 //#define CAMERA_MODEL_M5STACK_PSRAM
 #define CAMERA_MODEL_AI_THINKER
 
-const char* ssid = "SSID";
-const char* password = "password";
+const char* ssid = "----";
+const char* password = "---";
 
 
 #if defined(CAMERA_MODEL_WROVER_KIT)
@@ -66,12 +67,14 @@ extern int gpRb = 15; // Right Wheel Back
 extern int gpRf = 13; // Right Wheel Forward
 extern int gpLed =  4; // Light
 extern String WiFiAddr ="";
+//extern int gpServo = 12; // Camer vertical angle servo
 
 void startCameraServer();
+void hard_restart();
 
 void setup() {
   Serial.begin(115200);
-  Serial.setDebugOutput(true);
+  //Serial.setDebugOutput(true);
   Serial.println();
 
 
@@ -124,6 +127,7 @@ void setup() {
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
     Serial.printf("Camera init failed with error 0x%x", err);
+    //ESP.restart();
     return;
   }
 
@@ -148,7 +152,16 @@ void setup() {
   Serial.println("' to connect");
 }
 
+
 void loop() {
   // put your main code here, to run repeatedly:
+while (true) {
+  delay(1500000);
+  hard_restart();
+  
+}
+
+
+
 
 }
