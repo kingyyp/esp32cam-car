@@ -77,7 +77,7 @@ void setup() {
   //Serial.setDebugOutput(true);
   Serial.println();
 
-
+  setCpuFrequencyMhz(80);
   pinMode(gpLb, OUTPUT); //Left Backward
   pinMode(gpLf, OUTPUT); //Left Forward
   pinMode(gpRb, OUTPUT); //Right Forward
