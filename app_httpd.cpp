@@ -1,3 +1,4 @@
+
 // Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +18,8 @@
 #include "img_converters.h"
 //#include "camera_index.h"
 #include "Arduino.h"
+#include <esp_int_wdt.h>
+#include <esp_task_wdt.h>
 
 extern int gpLb;
 extern int gpLf;
@@ -27,6 +30,7 @@ extern String WiFiAddr;
 //extern int gpServo;
 
 void WheelAct(int nLf, int nLb, int nRf, int nRb);
+void hard_restart();
 
 typedef struct {
         size_t size; //number of values used for filtering
@@ -327,7 +331,7 @@ static esp_err_t index_handler(httpd_req_t *req){
  page += "<p align=center>";
  page += "<button style=width:140px;height:40px onmousedown=getsend('ledon')>LED ON</button>";
  page += "<button style=width:140px;height:40px onmousedown=getsend('ledoff')>LED OFF</button>";
- page += "<button style=width:140px;height:40px onmousedown=getsend('button1')>Button_1</button>";
+ page += "<button style=width:140px;height:40px onmousedown=getsend('button1')>Reboot</button>";
  page += "</p>";
  
     return httpd_resp_send(req, &page[0], strlen(&page[0]));
@@ -374,15 +378,16 @@ static esp_err_t ledon_handler(httpd_req_t *req){
 }
 static esp_err_t ledoff_handler(httpd_req_t *req){
     digitalWrite(gpLed, LOW);
-    Serial.println("LED OFF");
-    periph_module_reset(PERIPH_I2C0_MODULE);
+    Serial.println("LED OFF");    
     httpd_resp_set_type(req, "text/html");
     return httpd_resp_send(req, "OK", 2);
 }
 
 static esp_err_t button1_handler(httpd_req_t *req){
-    //ESP.restart();
     Serial.println("Button 1 pressed");
+    //ESP.restart();
+    hard_restart();
+    //periph_module_reset(PERIPH_I2C0_MODULE);
     httpd_resp_set_type(req, "text/html");
     return httpd_resp_send(req, "OK", 2);
 }
@@ -390,7 +395,7 @@ static esp_err_t button1_handler(httpd_req_t *req){
 void startCameraServer(){
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.max_uri_handlers =10;
-	
+  
 
     httpd_uri_t go_uri = {
         .uri       = "/go",
@@ -503,6 +508,12 @@ void startCameraServer(){
     if (httpd_start(&stream_httpd, &config) == ESP_OK) {
         httpd_register_uri_handler(stream_httpd, &stream_uri);
     }
+}
+
+void hard_restart() {
+  esp_task_wdt_init(1,true);
+  esp_task_wdt_add(NULL);
+  while(true);
 }
 
 void WheelAct(int nLf, int nLb, int nRf, int nRb)
